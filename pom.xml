@@ -16,31 +16,34 @@
 		<app.runtime>4.8.1</app.runtime>
 		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
 	</properties>
-
-	<build>
+<build>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-clean-plugin</artifactId>
-				<version>3.2.0</version>
-			</plugin>
-			<plugin>
-				<groupId>org.mule.tools.maven</groupId>
-				<artifactId>mule-maven-plugin</artifactId>
-				<version>${mule.maven.plugin.version}</version>
-				<extensions>true</extensions>
-				<configuration>
-					<sharedLibraries>
-						<sharedLibrary>
-							<groupId>org.postgresql</groupId>
-							<artifactId>postgresql</artifactId>
-						</sharedLibrary>
-					</sharedLibraries>
-				</configuration>
-			</plugin>
+			  <groupId>org.mule.tools.maven</groupId>
+			  <artifactId>mule-maven-plugin</artifactId>
+			  <version>${mule.maven.plugin.version}</version>
+			  <extensions>true</extensions>
+			  <configuration>
+			    <cloudHubDeployment>
+			      <deploymentType>cloudhub</deploymentType>
+			      <username>${anypoint.username}</username>
+			      <password>${anypoint.password}</password>
+			      <environment>Sandbox</environment>
+			      <applicationName>batch</applicationName>
+			      <workerType>MICRO</workerType>
+			      <workers>1</workers>
+			      <region>us-east-1</region>
+			    </cloudHubDeployment>
+			    <sharedLibraries>
+			      <sharedLibrary>
+			        <groupId>org.postgresql</groupId>
+			        <artifactId>postgresql</artifactId>
+			      </sharedLibrary>
+			    </sharedLibraries>
+			  </configuration>
+			</plugin>				
 		</plugins>
 	</build>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
@@ -104,8 +107,7 @@
 			<url>https://repository.mulesoft.org/releases/</url>
 			<layout>default</layout>
 		</repository>
-	</repositories>
-
+	</repositories> 
 	<pluginRepositories>
 		<pluginRepository>
 			<id>mulesoft-releases</id>
