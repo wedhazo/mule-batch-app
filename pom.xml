@@ -25,7 +25,6 @@
 			  <extensions>true</extensions>
 			  <configuration>
 			    <cloudHubDeployment>
-			      <deploymentType>cloudhub</deploymentType>
 			      <username>${anypoint.username}</username>
 			      <password>${anypoint.password}</password>
 			      <environment>Sandbox</environment>
