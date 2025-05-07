@@ -14,32 +14,44 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <app.runtime>4.8.1</app.runtime>
     <mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
+    <anypoint.username>MEKELE1</anypoint.username>
+    <anypoint.password>beriha@123KB!</anypoint.password>
   </properties>
-
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.mule.tools.maven</groupId>
-        <artifactId>mule-maven-plugin</artifactId>
-        <version>${mule.maven.plugin.version}</version>
-        <extensions>true</extensions>
-        <configuration>
-          <classifier>mule-application</classifier>
-          <deployment>
-            <provider>runtime-manager</provider>
-            <target>Sandbox</target> <!-- Replace with actual CloudHub environment -->
-            <targetType>environment</targetType>
-            <region>us-east-1</region>
-            <applicationName>batch</applicationName>
-            <username>${anypoint.username}</username>
-            <password>${anypoint.password}</password>
-            <workers>
-              <amount>1</amount>
-              <type>MICRO</type>
-            </workers>
-          </deployment>
-        </configuration>
-      </plugin>
+		 <plugin>
+		  <groupId>org.mule.tools.maven</groupId>
+		  <artifactId>mule-maven-plugin</artifactId>
+		  <version>${mule.maven.plugin.version}</version>
+		  <extensions>true</extensions>
+		  <executions>
+		    <execution>
+		      <id>deploy-cloudhub2</id>
+		      <phase>deploy</phase>
+		      <goals>
+		        <goal>deploy</goal>
+		      </goals>
+		      <configuration>
+		        <classifier>mule-application</classifier>
+		        <deployment>
+		          <target>CloudHub2</target>
+		          <targetType>target</targetType>
+		          <deploymentTargetId>${cloudhub2.deploymentTargetId}</deploymentTargetId>
+		          <applicationName>batch</applicationName>
+		          <username>${anypoint.username}</username>
+		          <password>${anypoint.password}</password>
+		          <region>us-east-1</region>
+		          <replicas>1</replicas>
+		          <workers>
+		            <cpu>0.1</cpu>
+		            <memory>0.5</memory>
+		          </workers>
+		          <runtimeVersion>${app.runtime}</runtimeVersion>
+		        </deployment>
+		      </configuration>
+		    </execution>
+		  </executions>
+		</plugin>
     </plugins>
   </build>
 
