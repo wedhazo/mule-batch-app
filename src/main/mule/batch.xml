@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="28670345-811d-4ea6-a2ae-6032d7fa3b45" >
+
+		<http:listener-connection host="0.0.0.0" port="8081" />
+
+	</http:listener-config>
+
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="d9c8683f-face-45ff-9a40-e1a037032c2c" >
+
+		<db:generic-connection url="jdbc:postgresql://localhost:5432/mulesoft" driverClassName="org.postgresql.Driver" user="postgres" password="beriha@123KB!"/>
+
+	</db:config>
+
+<vm:config name="VM_Config">
+
+    <vm:queues>
+
+        <vm:queue queueName="example.queue" />
+
+    </vm:queues>
+
+</vm:config>
+
+
+
+
+
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="bb606af8-67a7-4b81-9f4b-5e5e79649890" />
+
+	<flow name="batchFlow" doc:id="0e80b346-d50b-4743-a0d8-eb298ebec33a" >
+		<http:listener doc:name="Listener" doc:id="97077919-e63a-4073-a1a1-c80f99444dc1" config-ref="HTTP_Listener_config" path="/k"/>
+		<os:retrieve-all doc:name="Retrieve all" doc:id="27f3f17e-c7ee-412b-82ce-6d7386abec20" objectStore="Object_store"/>
+		<ee:transform doc:name="Transform" doc:id="206d8aee-4d1f-458c-831e-2e8ba642039d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="c9172ef6-0352-45bf-aca3-6c22c1b937db" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ offset: vars.offset, lastFetched: vars.recordsFetched }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<os:remove doc:name="Remove" doc:id="ad019675-b013-4ce2-894f-e1ffffd80902" key="recordsFetched" objectStore="Object_store"/>
+		<logger level="INFO" doc:name="Logger" doc:id="9312f19c-5082-4339-904b-75285784ce36" message="#[payload]"/>
+		<os:contains key="offset" objectStore="Object_store" doc:name="Check if offset exists" /><os:remove key="offset" objectStore="Object_store" doc:name="Remove offset" />
+		<logger level="INFO" doc:name="Logger" doc:id="0f33aac2-9ad6-4e87-8c99-6699ab600e41" message="all removerd #[payload]"/>
+		<os:store doc:name="Store" doc:id="7df313fd-1d18-4b58-abb3-dca9c2340dfc" key="offset" objectStore="Object_store"/>
+		<ee:transform doc:name="Transform Message" doc:id="1bd606b7-fedb-4293-919c-4c269043207f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="8b5130f7-ac34-4cb3-9551-3eecd0236933" >
+				<logger level="INFO" doc:name="Logger" doc:id="d32e9ca8-7206-4086-a485-5600c5557879" message="#[payload]"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="whyFlow2" doc:id="35d2e608-a622-4d47-8b4f-e6a20696728c" >
+
+		<vm:listener doc:name="Listener" doc:id="7c563a97-80d1-4fd7-8bda-9ced4af235d2" config-ref="VM_Config" queueName="example.queue"/>
+
+		<logger level="ERROR" doc:name="Logger" doc:id="77489724-6d49-42bc-a567-b0e040203adf" message="vm log #[payload]"/>
+
+		<flow-ref doc:name="Flow Reference" doc:id="45597f45-b86d-4873-895c-de277fc1d187" name="whyFlow3"/>
+
+	</flow>
+	<flow name="whyFlow3" doc:id="81149301-7879-4403-b9e4-e52694a48eb3">
+
+		<http:listener doc:name="Listener" doc:id="55dfed2b-f135-4046-b166-acc15d4ee20d" config-ref="HTTP_Listener_config" path="/kbb" allowedMethods="GET" />
+
+		<os:retrieve doc:name="Retrieve" doc:id="46b7e177-f99b-4069-8109-9d5952cbf0bf" key="offset" objectStore="Object_store">
+
+			<os:default-value><![CDATA[#[payload  default 0]]]></os:default-value>
+
+		</os:retrieve>
+
+		<ee:transform doc:name="Transform Message" doc:id="70e743c3-deda-409a-bda7-bf691c3f2172">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="offset" ><![CDATA[%dw 2.0
+output application/java
+---
+(payload match {
+  case n if (n is Number) -> n
+  else -> 0
+}) as Number
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:select doc:name="Select" config-ref="Database_Config">
+
+    <db:sql><![CDATA[SELECT * FROM employees_archive1 ORDER BY id LIMIT 100 OFFSET :offset]]></db:sql>
+
+				<db:input-parameters><![CDATA[#[{
+
+  "offset": vars.offset as Number
+
+}]]]></db:input-parameters>
+
+
+
+</db:select>
+		<logger level="ERROR" doc:name="Logger" doc:id="81d1c962-34ce-4c45-a73d-b1230dad10bf" message="#[payload]" />
+		<ee:transform doc:name="records" doc:id="fd349db5-75c4-4c47-a45f-62d52c946428">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload
+
+]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="records"><![CDATA[%dw 2.0
+output application/java
+---
+payload default []]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="recordsFetched" doc:id="d36dcc56-9eca-46a6-943e-cef70d5f01c2">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="recordsFetched"><![CDATA[%dw 2.0
+output application/java
+---
+sizeOf(vars.records)
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<set-payload value="#[vars.records]" doc:name="Dbdata" doc:id="9a664ac3-95fe-4d0a-a4ee-32432bea40d4" />
+		<logger level="ERROR" doc:name="Logger" doc:id="63f39abf-b8ca-403d-a04d-054bb676bf00" />
+		<os:store doc:name="Store" doc:id="731a8cf7-7676-4ad1-a3a4-a9837f2e5f7b" key="batchState" objectStore="Object_store">
+			<os:value><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+  offset: vars.offset default 0,
+  lastFetched: vars.recordsFetched default 0,
+  timestamp: now() // directly use now() here
+}]]]></os:value>
+		</os:store>
+		<batch:job jobName="whyBatch_Job1" doc:id="8dc0dab4-a530-4d9e-89ef-7c7c1c46e874">
+
+			<batch:process-records>
+				<batch:step name="Batch_Step2" doc:id="34789b60-4032-4ab6-ae7e-7546bf313c8d">
+
+					<ee:transform doc:name="Transform Message" doc:id="aa0e7e8c-7a24-427c-a9a1-b2234ccf7b0b">
+
+						<ee:message>
+
+							<ee:set-payload><![CDATA[%dw 2.0
+
+output application/java
+
+---
+
+[payload]
+
+]]></ee:set-payload>
+
+						</ee:message>
+
+					</ee:transform>
+
+					<logger level="ERROR" doc:name="Logger" doc:id="c8a9122e-753f-40fa-984e-e05489664542" message="#[payload]" />
+					<db:bulk-insert doc:name="Bulk insert" doc:id="ad97e102-5ca2-46b6-99cc-246bf2ab7d3f" config-ref="Database_Config">
+
+						<db:sql><![CDATA[INSERT INTO employees_archive2 (id, full_name, email, department, hire_date, status)VALUES (:id, :full_name, :email, :department, :hire_date, :status)
+ON CONFLICT (id) DO NOTHING]]></db:sql>
+
+					</db:bulk-insert>
+
+					<ee:transform doc:name="Transform Message" doc:id="a2c4026d-dc1d-4fae-8d66-06b4dc1029c7">
+
+						<ee:message>
+
+							<ee:set-payload><![CDATA[%dw 2.0
+
+output application/json
+
+---
+
+payload]]></ee:set-payload>
+
+						</ee:message>
+
+					</ee:transform>
+
+				</batch:step>
+
+			</batch:process-records>
+
+			<batch:on-complete>
+
+				<os:retrieve doc:name="Retrieve" doc:id="3b380ae2-680f-46d7-a1bf-f1617ee10735" objectStore="Object_store" key="batchState">
+					<os:default-value><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+  offset: payload.offset default 0,
+  lastFetched: payload.recordsFetched default 0,
+  timestamp: payload.batchTime
+}]]]></os:default-value>
+				</os:retrieve>
+				<ee:transform doc:name="newOffset" doc:id="89bd4dec-daea-41fa-856d-a27cdfe4a292">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="newOffset"><![CDATA[%dw 2.0
+output application/java
+---
+(vars.offset as Number) + (vars.recordsFetched as Number)
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<os:store doc:name="Store" doc:id="1bb5b5f3-16d0-4ed9-b826-70d431304233" key="offset" objectStore="Object_store">
+
+					<os:value><![CDATA[#[vars.newOffset]]]></os:value>
+
+				</os:store>
+
+				<logger level="ERROR" doc:name="Logger" doc:id="7a28aa38-eafd-436c-a9e1-56377329484f" message="#[payload]" />
+				<choice doc:name="Choice" doc:id="734e5449-1865-4063-86a1-0824030de17e">
+
+					<when expression="#[vars.newOffset &gt;= 5]">
+						<vm:publish queueName="example.queue" doc:name="Publish" doc:id="545bde38-b29e-4267-b4ac-180b9cb47620" config-ref="VM_Config" />
+						<logger level="ERROR" doc:name="Logger" doc:id="0ad9c0a4-c109-4dd8-94c4-2068bdf68d61" message="#[payload]" />
+
+					
+</when>
+					<otherwise>
+						<logger level="ERROR" doc:name="Logger" doc:id="c33cc9e4-670d-4e03-a414-13de80c86c22" message="all records processed" />
+						<ee:transform doc:name="Transform Message" doc:id="09c482a3-2b76-427a-84db-e74b8d6ce45d">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+
+
+					</otherwise>
+
+				
+</choice>
+
+			</batch:on-complete>
+
+		</batch:job>
+
+	</flow>
+
+
+</mule>
+
