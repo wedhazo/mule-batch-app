@@ -286,6 +286,7 @@ output application/json
 payload]]></ee:set-payload>
 							</ee:message>
 						</ee:transform>
+						<logger level="INFO" doc:name="Logger" doc:id="a72d1d57-4f37-4947-bccc-ee5f991172e0" message="#[payload]"/>
 
 
 					</otherwise>
