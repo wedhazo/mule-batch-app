@@ -17,44 +17,52 @@
     <anypoint.username>MEKELE1</anypoint.username>
     <anypoint.password>beriha@123KB!</anypoint.password>
   </properties>
+  <!-- 👇 Add this section to fix the "repository element was not specified" error -->
+  <distributionManagement>
+    <repository>
+      <id>anypoint-exchange</id>
+      <name>Anypoint Exchange</name>
+      <url>https://maven.anypoint.mulesoft.com/api/v2/organizations/your-org-id-here/maven</url>
+    </repository>
+  </distributionManagement>
+
   <build>
     <plugins>
-		 <plugin>
-		  <groupId>org.mule.tools.maven</groupId>
-		  <artifactId>mule-maven-plugin</artifactId>
-		  <version>${mule.maven.plugin.version}</version>
-		  <extensions>true</extensions>
-		  <executions>
-		    <execution>
-		      <id>deploy-cloudhub2</id>
-		      <phase>deploy</phase>
-		      <goals>
-		        <goal>deploy</goal>
-		      </goals>
-		      <configuration>
-		        <classifier>mule-application</classifier>
-		        <deployment>
-		          <target>CloudHub2</target>
-		          <targetType>target</targetType>
-		          <deploymentTargetId>${cloudhub2.deploymentTargetId}</deploymentTargetId>
-		          <applicationName>batch</applicationName>
-		          <username>${anypoint.username}</username>
-		          <password>${anypoint.password}</password>
-		          <region>us-east-1</region>
-		          <replicas>1</replicas>
-		          <workers>
-		            <cpu>0.1</cpu>
-		            <memory>0.5</memory>
-		          </workers>
-		          <runtimeVersion>${app.runtime}</runtimeVersion>
-		        </deployment>
-		      </configuration>
-		    </execution>
-		  </executions>
-		</plugin>
+      <plugin>
+        <groupId>org.mule.tools.maven</groupId>
+        <artifactId>mule-maven-plugin</artifactId>
+        <version>${mule.maven.plugin.version}</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>deploy-cloudhub2</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>deploy</goal>
+            </goals>
+            <configuration>
+              <classifier>mule-application</classifier>
+              <deployment>
+                <target>CloudHub2</target>
+                <targetType>target</targetType>
+                <deploymentTargetId>${cloudhub2.deploymentTargetId}</deploymentTargetId>
+                <applicationName>batch</applicationName>
+                <username>${anypoint.username}</username>
+                <password>${anypoint.password}</password>
+                <region>us-east-1</region>
+                <replicas>1</replicas>
+                <workers>
+                  <cpu>0.1</cpu>
+                  <memory>0.5</memory>
+                </workers>
+                <runtimeVersion>${app.runtime}</runtimeVersion>
+              </deployment>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
-
   <dependencies>
     <!-- Mule Connectors -->
     <dependency>
